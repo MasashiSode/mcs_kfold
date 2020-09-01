@@ -1,0 +1,9 @@
+# General
+nohup.out
+.vscode/
+.venv
+.mypy_cache
+
+# Python-related
+.ipynb_checkpoints/
+__pycache__/

@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "mcs_kfold"
+version = "0.1.0"
+description = ""
+authors = ["Masashi Sode <masashi.sode@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.6.5"
+scikit-learn = "^0.23.2"
+scipy = "^1.5.2"
+numpy = "^1.19.1"
+pandas = "^1.1.1"
+
+[tool.poetry.dev-dependencies]
+black = "^19.10b0"
+flake8 = "^3.8.2"
+isort = "^4.3.21"
+autopep8 = "^1.5.2"
+mypy = "^0.770"
+pytest = "^6.0.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0a5"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.dephell.main]
+from = {format = "poetry", path = "pyproject.toml"}
+to = {format = "setuppy", path = "setup.py"}
