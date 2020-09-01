@@ -1,20 +1,9 @@
-import os
-import random
-
-import numpy as np
 import pandas as pd
 
 from mcs_kfold import MCSKFold
 import pytest
 
-
-def seed_everything(seed):
-    random.seed(seed)
-    os.environ["PYTHONHASHSEED"] = str(seed)
-    np.random.seed(seed)
-
-
-seed_everything(2020)
+SEED = 2020
 
 
 def make_param_mcs_kfold():
@@ -36,14 +25,14 @@ def make_param_split():
 
 @pytest.mark.parametrize("num_cv, max_iter, shuffle_mc", make_param_mcs_kfold())
 def test_mcs_kfold(num_cv, max_iter, shuffle_mc):
-    mcskf = MCSKFold(n_splits=num_cv, max_iter=max_iter, shuffle_mc=shuffle_mc)
+    mcskf = MCSKFold(n_splits=num_cv, max_iter=max_iter, shuffle_mc=shuffle_mc, global_seed=SEED)
     assert isinstance(mcskf, MCSKFold)
 
 
 @pytest.mark.parametrize("num_cv, shuffle_mc", make_param_split())
 def test_split(num_cv, shuffle_mc):
     df = pd.read_csv("tests/test_data/train_titanic.csv")
-    mcskf = MCSKFold(n_splits=num_cv, max_iter=1, shuffle_mc=shuffle_mc)
+    mcskf = MCSKFold(n_splits=num_cv, max_iter=1, shuffle_mc=shuffle_mc, global_seed=SEED)
     indices = mcskf.split(df=df, target_cols=["Survived", "Pclass", "Sex"])
     assert isinstance(indices, list)
 

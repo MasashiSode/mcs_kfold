@@ -1,3 +1,4 @@
+import os
 import random
 
 import numpy as np
@@ -8,11 +9,19 @@ from sklearn.preprocessing import LabelEncoder
 
 
 class MCSKFold:
-    def __init__(self, n_splits: int = 5, max_iter: int = 100, shuffle_mc: bool = True):
+    def __init__(
+        self,
+        n_splits: int = 5,
+        max_iter: int = 100,
+        shuffle_mc: bool = True,
+        global_seed: int = 2020,
+    ):
         n_splits, max_iter = self.__check_input(n_splits, max_iter)
         self.n_splits = n_splits
         self.max_iter = max_iter
         self.shuffle_mc = shuffle_mc
+        self.global_seed = global_seed
+        self.__seed_everything()
 
     def split(self, df: pd.DataFrame, target_cols: list, target_cols_cat_num: list = None):
         if target_cols_cat_num is None:
@@ -75,6 +84,11 @@ class MCSKFold:
         indices = self.__get_best_kfold(df, target_cols, best_kfold_seed)
 
         return indices
+
+    def __seed_everything(self):
+        random.seed(self.global_seed)
+        os.environ["PYTHONHASHSEED"] = str(self.global_seed)
+        np.random.seed(self.global_seed)
 
     def __check_input(self, n_splits, max_iter):
         if n_splits <= 1:
