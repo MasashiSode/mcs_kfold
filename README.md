@@ -19,11 +19,33 @@ for fold, (train_idx, valid_idx) in enumerate(
 
 ```
 
+see also [example](https://github.com/MasashiSode/mcs_kfold/blob/master/examples/exp_titanic.ipynb) for further information.
+
+histograms shown below is generated with this library with [Kaggle Titanic: Machine Learning from Disaster data](https://www.kaggle.com/c/titanic/data?select=train.csv). you can see here that three target variables are equally distributed over five folds.
+
+#### fold 0
+
+![image](./examples/figs/titanic_fold0.svg)
+
+#### fold 1
+
+![image](./examples/figs/titanic_fold1.svg)
+
+#### fold 2
+
+![image](./examples/figs/titanic_fold2.svg)
+
+#### fold 3
+
+![image](./examples/figs/titanic_fold3.svg)
+
+#### fold 4
+
+![image](./examples/figs/titanic_fold4.svg)
+
 ## Install
 
 ### pip
-
-**not yet implemented**
 
 `pip install mcs_kfold`
 
