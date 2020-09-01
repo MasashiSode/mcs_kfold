@@ -1,7 +1,7 @@
 import pandas as pd
+import pytest
 
 from mcs_kfold import MCSKFold
-import pytest
 
 SEED = 2020
 
