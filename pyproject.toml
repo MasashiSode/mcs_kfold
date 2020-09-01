@@ -19,11 +19,13 @@ isort = "^4.3.21"
 autopep8 = "^1.5.2"
 mypy = "^0.770"
 pytest = "^6.0.1"
-
-[build-system]
-requires = ["poetry-core>=1.0.0a5"]
-build-backend = "poetry.core.masonry.api"
+seaborn = "^0.10.1"
+matplotlib = "^3.3.1"
 
 [tool.dephell.main]
 from = {format = "poetry", path = "pyproject.toml"}
 to = {format = "setuppy", path = "setup.py"}
+[build-system]
+requires = ["poetry-core>=1.0.0a5"]
+build-backend = "poetry.core.masonry.api"
+
