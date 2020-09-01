@@ -40,3 +40,9 @@ pip install .
 ```sh
 poetry install
 ```
+
+## Test
+
+```sh
+pytest
+```
