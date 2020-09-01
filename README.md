@@ -10,7 +10,7 @@ from mcs_kfold import MCSKFold
 mcskf = MCSKFold(n_splits=num_cv, shuffle_mc=True, max_iter=100)
 
 for fold, (train_idx, valid_idx) in enumerate(
-    mcskf.split(df=df, target_cols=["survived", "Pclass", "Sex"])
+    mcskf.split(df=df, target_cols=["Survived", "Pclass", "Sex"])
 ):
     .
     .
