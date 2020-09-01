@@ -7,3 +7,6 @@ nohup.out
 # Python-related
 .ipynb_checkpoints/
 __pycache__/
+
+*.whl
+*.gz
