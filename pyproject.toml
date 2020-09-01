@@ -19,7 +19,6 @@ isort = "^4.3.21"
 autopep8 = "^1.5.2"
 mypy = "^0.770"
 pytest = "^6.0.1"
-seaborn = "^0.10.1"
 matplotlib = "^3.3.1"
 
 [tool.dephell.main]
