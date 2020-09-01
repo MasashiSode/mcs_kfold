@@ -30,7 +30,13 @@ for fold, (train_idx, valid_idx) in enumerate(
 ### Install newest version
 
 ```sh
-git clone []
-cd []
+git clone https://github.com/MasashiSode/mcs_kfold
+cd mcs_kfold
 pip install .
+```
+
+## Develop
+
+```sh
+poetry install
 ```
