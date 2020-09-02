@@ -27,10 +27,10 @@ jobs:
         poetry install
 
     - name: Run pytest
-      run: pytest
+      run: poetry run pytest
 
     - name: Test with black
-      run: black --check .
+      run: poetry run black --check .
 
     - name: Test with isort
-      run: isort -c
+      run: poetry runv isort -c
