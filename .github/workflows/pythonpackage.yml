@@ -33,4 +33,4 @@ jobs:
       run: poetry run black --check .
 
     - name: Test with isort
-      run: poetry runv isort -c
+      run: poetry run isort -c
