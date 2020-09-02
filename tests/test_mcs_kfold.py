@@ -10,7 +10,7 @@ SEED = 2020
 
 def make_param_mcs_kfold():
     test_params = []
-    for num_cv in range(0, 15):
+    for num_cv in range(0, 11):
         for max_iter in [0, 100, 10]:
             for shuffle_mc in [True, False]:
                 test_params.append((num_cv, max_iter, shuffle_mc))
@@ -19,9 +19,16 @@ def make_param_mcs_kfold():
 
 def make_param_split():
     test_params = []
-    for num_cv in range(0, 15):
+    for num_cv in range(0, 11):
         for shuffle_mc in [True, False]:
             test_params.append((num_cv, shuffle_mc))
+    return test_params
+
+
+def make_param_stratified_split():
+    test_params = []
+    for num_cv in range(0, 11):
+        test_params.append((num_cv))
     return test_params
 
 
@@ -39,11 +46,11 @@ def test_split(num_cv, shuffle_mc):
     assert isinstance(indices, list)
 
 
-@pytest.mark.parametrize("num_cv, shuffle_mc", make_param_split())
-def test_stratified_split(num_cv, shuffle_mc):
+@pytest.mark.parametrize("num_cv", make_param_stratified_split())
+def test_stratified_split(num_cv):
     target_cols = ["Survived", "Pclass", "Sex"]
     df = pd.read_csv("tests/test_data/train_titanic.csv")
-    mcskf = MCSKFold(n_splits=num_cv, max_iter=1, shuffle_mc=shuffle_mc, global_seed=SEED)
+    mcskf = MCSKFold(n_splits=num_cv, max_iter=25, shuffle_mc=True, global_seed=SEED)
     indices = mcskf.split(df=df, target_cols=target_cols)
 
     tr_ = {col: np.zeros((len(indices), len(df[col].unique()))) for col in target_cols}
@@ -52,7 +59,7 @@ def test_stratified_split(num_cv, shuffle_mc):
         for col in target_cols:
             tr_[col][fold] = df.iloc[train_index][col].value_counts(normalize=True)
             val_[col][fold] = df.iloc[valid_index][col].value_counts(normalize=True)
-    assert_threshold = 0.1
+    assert_threshold = 0.05
     for col in target_cols:
         tr_std_per_label = tr_[col].std(axis=0)
         val_std_per_label = val_[col].std(axis=0)
