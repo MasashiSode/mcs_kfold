@@ -47,7 +47,9 @@ histograms shown below is generated with this library with [Kaggle Titanic: Mach
 
 ### pip
 
-`pip install mcs_kfold`
+```sh
+pip install mcs_kfold
+```
 
 ### Install newest version
 
