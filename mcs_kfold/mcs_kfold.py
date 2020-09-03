@@ -3,11 +3,11 @@ import random
 
 import numpy as np
 import pandas as pd
+from joblib import Parallel, delayed
 from scipy.stats import entropy
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
 
-from joblib import Parallel, delayed
 
 class MCSKFold:
     def __init__(
@@ -24,27 +24,42 @@ class MCSKFold:
         self.global_seed = global_seed
         self.__seed_everything()
 
-    def split(self, df: pd.DataFrame, target_cols: list, target_cols_cat_num: list = None):
+    def split(
+        self, df: pd.DataFrame, target_cols: list, target_cols_cat_num: list = None
+    ):
         seeds = self.__initialize_seed()
         df = self.__convert_cat_var_to_int(df, target_cols)
         if target_cols_cat_num is None:
             target_cols_cat_num = self.__count_unique(df, target_cols)
 
-        df_result = Parallel(n_jobs=-1)([delayed(self.split_one_seed)(df, target_cols, target_cols_cat_num, seed) for seed in seeds])
+        df_result = Parallel(n_jobs=-1)(
+            [
+                delayed(self.split_one_seed)(df, target_cols, target_cols_cat_num, seed)
+                for seed in seeds
+            ]
+        )
         df_result = pd.concat(df_result)
 
         best_kfold_seed = self.__extract_smallest_variance_seed_in_topk(df_result)
         indices = self.__get_best_kfold(df, target_cols, best_kfold_seed)
         return indices
 
-    def split_one_seed(self, df: pd.DataFrame, target_cols: list, target_cols_cat_num: list = None, seed=0):
+    def split_one_seed(
+        self,
+        df: pd.DataFrame,
+        target_cols: list,
+        target_cols_cat_num: list = None,
+        seed=0,
+    ):
         df_result = pd.DataFrame()
 
         skf = StratifiedKFold(n_splits=self.n_splits, shuffle=True, random_state=seed)
         df_list = []
         num_list = []
 
-        for fold, (train_idx, valid_idx) in enumerate(skf.split(df.index, df[target_cols[0]])):
+        for fold, (train_idx, valid_idx) in enumerate(
+            skf.split(df.index, df[target_cols[0]])
+        ):
             df_list.append(df.iloc[train_idx])
             num_list.append(len(train_idx))
         num_min = min(num_list)
@@ -106,7 +121,9 @@ class MCSKFold:
 
     def __initialize_seed(self):
         if self.shuffle_mc:
-            seeds = [random.randint(0, self.max_iter * 10) for i in range(self.max_iter)]
+            seeds = [
+                random.randint(0, self.max_iter * 10) for i in range(self.max_iter)
+            ]
         else:
             seeds = range(0, self.max_iter)
         return seeds
@@ -119,13 +136,21 @@ class MCSKFold:
         return df
 
     def __extract_smallest_variance_seed_in_topk(self, df_result):
-        best_kfold_index = df_result.nsmallest(10, "weighted_mean")["weighted_var"].argmin()
-        best_kfold_seed = int(df_result.nsmallest(10, "weighted_mean").index[best_kfold_index])
+        best_kfold_index = df_result.nsmallest(10, "weighted_mean")[
+            "weighted_var"
+        ].argmin()
+        best_kfold_seed = int(
+            df_result.nsmallest(10, "weighted_mean").index[best_kfold_index]
+        )
         return best_kfold_seed
 
     def __get_best_kfold(self, df, target_cols, best_kfold_seed):
-        skf = StratifiedKFold(n_splits=self.n_splits, shuffle=True, random_state=best_kfold_seed)
+        skf = StratifiedKFold(
+            n_splits=self.n_splits, shuffle=True, random_state=best_kfold_seed
+        )
         indices = []
-        for _, (train_idx, valid_idx) in enumerate(skf.split(df.index, df[target_cols[0]])):
+        for _, (train_idx, valid_idx) in enumerate(
+            skf.split(df.index, df[target_cols[0]])
+        ):
             indices.append([train_idx, valid_idx])
         return indices
