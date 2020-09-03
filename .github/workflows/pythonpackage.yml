@@ -4,33 +4,32 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.6, 3.7, 3.8]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install Poetry
-      run: |
-        python -m pip install --upgrade pip setuptools poetry
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Poetry
+        run: |
+          python -m pip install --upgrade pip setuptools poetry
 
-    - name: Install dependencies
-      run: |
-        poetry run pip install -U pip
-        poetry update
-        poetry install
+      - name: Install dependencies
+        run: |
+          poetry run pip install -U pip
+          poetry update
+          poetry install
 
-    - name: Run pytest
-      run: poetry run pytest
+      - name: Run pytest
+        run: poetry run pytest
 
-    - name: Test with black
-      run: poetry run black mcs_kfold/ --check --line-length 99
+      - name: Test with isort
+        run: poetry run isort -c
 
-    - name: Test with isort
-      run: poetry run isort -c
+      - name: Test with black
+        run: poetry run black mcs_kfold/ --check --line-length=99
