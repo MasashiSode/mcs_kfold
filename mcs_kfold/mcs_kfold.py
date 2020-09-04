@@ -3,6 +3,7 @@ import random
 
 import numpy as np
 import pandas as pd
+from joblib import Parallel, delayed
 from scipy.stats import entropy
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
@@ -23,67 +24,87 @@ class MCSKFold:
         self.global_seed = global_seed
         self.__seed_everything()
 
-    def split(self, df: pd.DataFrame, target_cols: list, target_cols_cat_num: list = None):
+    def split(
+        self,
+        df: pd.DataFrame,
+        target_cols: list,
+        target_cols_cat_num: list = None,
+        n_jobs: int = -1,
+    ):
+        seeds = self.__initialize_seed()
+        df = self.__convert_cat_var_to_int(df, target_cols)
         if target_cols_cat_num is None:
             target_cols_cat_num = self.__count_unique(df, target_cols)
-        df = self.__convert_cat_var_to_int(df, target_cols)
 
-        df_result = pd.DataFrame()
-        seeds = self.__initialize_seed()
-
-        for seed in seeds:
-            skf = StratifiedKFold(n_splits=self.n_splits, shuffle=True, random_state=seed)
-            df_list = []
-            num_list = []
-
-            for fold, (train_idx, valid_idx) in enumerate(skf.split(df.index, df[target_cols[0]])):
-                df_list.append(df.iloc[train_idx])
-                num_list.append(len(train_idx))
-            num_min = min(num_list)
-
-            # entropy_list = []
-            target_cols_cat_num_max = max(target_cols_cat_num)
-            df_result.loc[str(seed), "weighted_mean"] = 0
-            df_result.loc[str(seed), "weighted_var"] = 0
-            for target_col_index, target_col in enumerate(target_cols[1:]):
-                entropy_i_j_list = []
-                for i, df_i in enumerate(df_list):
-                    df_i = df_i[target_cols[1:]].iloc[:num_min]
-                    for j, df_j in enumerate(df_list):
-                        if j >= i:
-                            continue
-                        df_j = df_j[target_cols[1:]].iloc[:num_min]
-
-                        entropy_i_j = entropy(
-                            np.histogram(
-                                df_i[target_col],
-                                bins=target_cols_cat_num[target_col_index + 1],
-                                density=True,
-                            )[0],
-                            np.histogram(
-                                df_j[target_col],
-                                bins=target_cols_cat_num[target_col_index + 1],
-                                density=True,
-                            )[0],
-                        )
-                        entropy_i_j_list.append(entropy_i_j)
-                entropy_mean_col = np.mean(entropy_i_j_list)
-                entropy_var_col = np.var(entropy_i_j_list)
-
-                df_result.loc[str(seed), target_col] = entropy_mean_col
-                df_result.loc[str(seed), f"{target_col}_var"] = entropy_var_col
-                df_result.loc[str(seed), "weighted_mean"] += (
-                    target_cols_cat_num_max / target_cols_cat_num[target_col_index + 1]
-                ) * entropy_mean_col
-
-                df_result.loc[str(seed), "weighted_var"] += (
-                    target_cols_cat_num_max / target_cols_cat_num[target_col_index + 1]
-                ) * entropy_var_col
+        df_result = Parallel(n_jobs=n_jobs)(
+            [
+                delayed(self.split_one_seed)(df, target_cols, target_cols_cat_num, seed)
+                for seed in seeds
+            ]
+        )
+        df_result = pd.concat(df_result)
 
         best_kfold_seed = self.__extract_smallest_variance_seed_in_topk(df_result)
         indices = self.__get_best_kfold(df, target_cols, best_kfold_seed)
-
         return indices
+
+    def split_one_seed(
+        self,
+        df: pd.DataFrame,
+        target_cols: list,
+        target_cols_cat_num: list = None,
+        seed=0,
+    ):
+        df_result = pd.DataFrame()
+
+        skf = StratifiedKFold(n_splits=self.n_splits, shuffle=True, random_state=seed)
+        df_list = []
+        num_list = []
+
+        for fold, (train_idx, valid_idx) in enumerate(skf.split(df.index, df[target_cols[0]])):
+            df_list.append(df.iloc[train_idx])
+            num_list.append(len(train_idx))
+        num_min = min(num_list)
+
+        target_cols_cat_num_max = max(target_cols_cat_num)
+        df_result.loc[str(seed), "weighted_mean"] = 0
+        df_result.loc[str(seed), "weighted_var"] = 0
+        for target_col_index, target_col in enumerate(target_cols[1:]):
+            entropy_i_j_list = []
+            for i, df_i in enumerate(df_list):
+                df_i = df_i[target_cols[1:]].iloc[:num_min]
+                for j, df_j in enumerate(df_list):
+                    if j >= i:
+                        continue
+                    df_j = df_j[target_cols[1:]].iloc[:num_min]
+
+                    entropy_i_j = entropy(
+                        np.histogram(
+                            df_i[target_col],
+                            bins=target_cols_cat_num[target_col_index + 1],
+                            density=True,
+                        )[0],
+                        np.histogram(
+                            df_j[target_col],
+                            bins=target_cols_cat_num[target_col_index + 1],
+                            density=True,
+                        )[0],
+                    )
+                    entropy_i_j_list.append(entropy_i_j)
+            entropy_mean_col = np.mean(entropy_i_j_list)
+            entropy_var_col = np.var(entropy_i_j_list)
+
+            df_result.loc[str(seed), target_col] = entropy_mean_col
+            df_result.loc[str(seed), f"{target_col}_var"] = entropy_var_col
+            df_result.loc[str(seed), "weighted_mean"] += (
+                target_cols_cat_num_max / target_cols_cat_num[target_col_index + 1]
+            ) * entropy_mean_col
+
+            df_result.loc[str(seed), "weighted_var"] += (
+                target_cols_cat_num_max / target_cols_cat_num[target_col_index + 1]
+            ) * entropy_var_col
+
+        return df_result
 
     def __seed_everything(self):
         random.seed(self.global_seed)
