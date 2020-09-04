@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mcs_kfold"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Masashi Sode <masashi.sode@gmail.com>"]
 license = "MIT"
