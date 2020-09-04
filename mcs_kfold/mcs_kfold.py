@@ -49,11 +49,7 @@ class MCSKFold:
         return indices
 
     def split_one_seed(
-        self,
-        df: pd.DataFrame,
-        target_cols: list,
-        target_cols_cat_num: list = None,
-        seed=0,
+        self, df: pd.DataFrame, target_cols: list, target_cols_cat_num: list = None, seed=0,
     ):
         df_result = pd.DataFrame()
 
